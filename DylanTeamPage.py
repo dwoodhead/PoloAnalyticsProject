@@ -16,7 +16,7 @@ df = df.fillna(0)
 df.drop(df.columns[0], axis=1, inplace=True)
 df['Outcome'] = df['Outcome'].replace('W', 1)
 df['Outcome'] = df['Outcome'].replace('L', 0)
-df['Last'] = df['First'].astype(str).str[0] + '. ' + df['Last'].astype(str)
+df['Last'] = df['Last'].astype(str) + ' ' + df['First'].astype(str).str[0] + '.'
 
 # get list of teams
 teamlist = sorted(df.Team.unique().tolist())
@@ -269,10 +269,11 @@ def addaverages(dff):
     dff.at[dff.index[-1], 'Team'] = 'Top 8 Avg'
 
     return dff.round(2)
-def gettables(playerAvg, teamAvg, team):
+def gettables(playerAvg, stat, teamAvg, team):
     teamtable = teamAvg[~(teamAvg['Team'] != team) | ~(teamAvg['Team'] != 'All Teams Avg') | ~(teamAvg['Team'] != 'Top 8 Avg')]
 
-    table1 = playerAvg.filter(['Last', 'Games', 'Goals pg', 'Shots pg', 'Shooting %', 'Extra Shooting %', 'Total EX pg'], axis=1)
+    table1 = playerAvg.filter(
+            ['Last', 'Games', 'Goals pg', 'Shots pg', 'Shooting %', 'Extra Shooting %', 'Total EX pg', stat], axis=1)
     table2 = teamtable.filter(['Team', 'Win %', 'Goals pg', 'Shots pg', 'Extra Shooting %', 'Total DEX pg'], axis=1)
     table3 = teamtable.filter(['Team', 'Games', 'Goals Ag pg', 'Shots Ag pg', 'Op Extra Shooting %', 'Total EX pg'], axis=1)
 
@@ -473,12 +474,23 @@ app.layout = dbc.Container([
             "Result Filter",
             dcc.Dropdown(id='result_dropdown_copy',
                          options=['All', 'W', 'L'],
-                         value='All')], width={'size': 3, 'offset': 1}, className='mb-4'),
+                         value='All')], width={'size': 2, 'offset': 1}, className='mb-4'),
         dbc.Col([
             "Opponent Filter",
             dcc.Dropdown(id='opponent_dropdown_copy',
                          options=[],
-                         value='All')], width={'size': 3}, className='mb-4'),
+                         value='All')], width={'size': 2}, className='mb-4'),
+        dbc.Col([
+            "Custom Stat",
+            dcc.Dropdown(id='stat_dropdown',
+                         options=['Action Goals pg', 'Action Shots pg', 'Extra Goals pg', 'Extra Shots pg',
+                                  'Center Goals pg', 'Center Shots pg', 'Foul Goals pg', 'Foul Shots pg',
+                                  '6MF Goals pg', '6MF Shots pg', 'PS Goals pg', 'PS Shots pg', 'CA Goals pg',
+                                  'CA Shots pg', 'TF pg', 'ST pg', 'RB pg', 'BL pg', 'SP Won pg', 'SP Attempts pg',
+                                  'CP EX pg', 'FP EX pg', 'DS EX pg', 'M6 EX pg', 'CS EX pg', 'DE pg', 'P EX pg',
+                                  'Minutes pg', 'Center Shooting %', 'Action Shooting %', 'Foul Shooting %',
+                                  '6MF Shooting %', 'PS Shooting %', 'CA Shooting %'],
+                         value='Minutes pg')], width={'size': 2}, className='mb-4')
     ]),     # Secondary Dropdowns
     dbc.Row([
         dbc.Col(
@@ -507,8 +519,9 @@ app.layout = dbc.Container([
     Input('team_dropdown', 'value'),
     Input('tournament_dropdown', 'value'),
     Input('result_dropdown', 'value'),
-    Input('opponent_dropdown', 'value'))
-def update_tables(team, tournament, result, opponent):
+    Input('opponent_dropdown', 'value'),
+    Input('stat_dropdown', 'value'))
+def update_tables(team, tournament, result, opponent, stat):
     teamstats = teams_master
     playerstats = players_master
 
@@ -520,7 +533,7 @@ def update_tables(team, tournament, result, opponent):
     teamComp, teamAvg = teamcompile(teamstats)
     teamAvg = addaverages(teamAvg)
 
-    table1, table2, table3 = gettables(playerAvg, teamAvg, team)
+    table1, table2, table3 = gettables(playerAvg, stat, teamAvg, team)
 
     # Tables
     dash_table.DataTable(id='player-table',
