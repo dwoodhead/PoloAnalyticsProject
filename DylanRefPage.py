@@ -139,24 +139,24 @@ app.layout = dbc.Container([
         dbc.Col([
             "Tournament Filter",
             dcc.Dropdown(
-                id='tournament_dropdown',
+                id='tournament_dropdown_ref',
                 options=['All', 'OLY2020', 'WC2022', 'EURO2022'],
                 value='All',
-            )], width={'size': 2, 'offset': 3}, id='tournament_output', className='mb-4'),
+            )], width={'size': 2, 'offset': 3}, id='tournament_output_ref', className='mb-4'),
         dbc.Col([
             "Game Type Filter",
             dcc.Dropdown(
-                id='opponent_dropdown',
+                id='opponent_dropdown_ref',
                 options=['All', 'TOP 8', 'Knockout Rounds'],
                 value='All',
-            )], width={'size': 2}, id='opponent_output', className='mb-4'),
+            )], width={'size': 2}, id='opponent_output_ref', className='mb-4'),
         dbc.Col([
             "Sort by",
             dcc.Dropdown(
-                id='rank_dropdown',
+                id='rank_dropdown_ref',
                 options=['Ref', 'Total Goals pg', 'Avg Goal Diff', 'Total EX pg', 'Total TF pg', 'Games'],
                 value='Ref',
-            )], width={'size': 2}, id='rank_output', className='mb-4')
+            )], width={'size': 2}, id='rank_output_ref', className='mb-4')
     ]),  # Dropdowns
     dbc.Row([
         dbc.Col(html.H4("General Stats", className='text-center, mb-4'),
@@ -185,24 +185,24 @@ app.layout = dbc.Container([
         dbc.Col([
             "Game Type Filter",
             dcc.Dropdown(
-                id='opponent_dropdown_copy',
+                id='opponent_dropdown_copy_ref',
                 options=[],
                 value='All'
-            )], width={'size': 2}, id='opponent_output_copy', className='mb-4'),
+            )], width={'size': 2}, id='opponent_output_copy_ref', className='mb-4'),
     ]),  # 2nd Dropdowns
     dbc.Row([
         dbc.Col([
-            dcc.Graph(id="goalGraph", style={'width': '48%', 'display': 'inline-block'}),
-            dcc.Graph(id="exGraph", style={'width': '48%', 'display': 'inline-block'})
+            dcc.Graph(id="goalGraph_ref", style={'width': '48%', 'display': 'inline-block'}),
+            dcc.Graph(id="exGraph_ref", style={'width': '48%', 'display': 'inline-block'})
         ], width=12, className='mb-4')
     ])  # Player Charts
 ])
 
 @app.callback(
     Output('refTable', 'data'),
-    Input('tournament_dropdown', 'value'),
-    Input('opponent_dropdown', 'value'),
-    Input('rank_dropdown', 'value'))
+    Input('tournament_dropdown_ref', 'value'),
+    Input('opponent_dropdown_ref', 'value'),
+    Input('rank_dropdown_ref', 'value'))
 def update_table(tournament, opponent, rank):
     dff = df
 
@@ -232,10 +232,10 @@ def update_table(tournament, opponent, rank):
     return refTable
 
 @app.callback(
-    Output('goalGraph', 'figure'),
-    Output('exGraph', 'figure'),
-    Input('tournament_dropdown', 'value'),
-    Input('opponent_dropdown_copy', 'value'),
+    Output('goalGraph_ref', 'figure'),
+    Output('exGraph_ref', 'figure'),
+    Input('tournament_dropdown_ref', 'value'),
+    Input('opponent_dropdown_copy_ref', 'value'),
     Input('ref_dropdown', 'value'))
 def update_charts(tournament, opponent, ref):
     dff = df
@@ -256,10 +256,10 @@ def update_charts(tournament, opponent, ref):
 
     return buildbar(goaldf, ref, 'Avg Goals'), buildbar(exdf, ref, 'Avg Exclusions')
 @app.callback(
-    [Output('opponent_dropdown_copy', 'options'),
+    [Output('opponent_dropdown_copy_ref', 'options'),
      Output('ref_dropdown', 'value')],
     [Input('ref_dropdown', 'value'),
-    Input('opponent_dropdown_copy', 'value')])
+        Input('opponent_dropdown_copy_ref', 'value')])
 def updatedropdowns(ref, opponent):
     refdff = pd.DataFrame()
     refdf = df.filter(['Ref', 'Team', 'Match Number'])

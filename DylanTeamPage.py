@@ -389,31 +389,31 @@ app.layout = dbc.Container([
         dbc.Col([
             "Select a Team",
             dcc.Dropdown(
-                id='team_dropdown',
+                id='team_dropdown_tpg',
                 options=[{'label': t, 'value': t} for t in teamlist],
                 value='USA',
-            )], width={'size': 2, 'offset': 2}, id='team_output', className='mb-4'),
+            )], width={'size': 2, 'offset': 2}, id='team_output_tpg', className='mb-4'),
         dbc.Col([
             "Tournament Filter",
             dcc.Dropdown(
-                id='tournament_dropdown',
+                id='tournament_dropdown_tpg',
                 options=['All', 'OLY2020'],
                 value='All',
-            )], width={'size': 2}, id='tournament_output', className='mb-4'),
+            )], width={'size': 2}, id='tournament_output_tpg', className='mb-4'),
         dbc.Col([
             "Result Filter",
             dcc.Dropdown(
-                id='result_dropdown',
+                id='result_dropdown_tpg',
                 options=['All', 'W', 'L'],
                 value='All',
-            )], width={'size': 2}, id='result_output', className='mb-4'),
+            )], width={'size': 2}, id='result_output_tpg', className='mb-4'),
         dbc.Col([
             "Opponent Filter",
             dcc.Dropdown(
-                id='opponent_dropdown',
+                id='opponent_dropdown_tpg',
                 options=[],
                 value='All',
-            )], width={'size': 2}, id='opponent_output', className='mb-4')
+            )], width={'size': 2}, id='opponent_output_tpg', className='mb-4')
     ]),     # Dropdowns
     dbc.Row([
         dbc.Col(html.H4("Offensive Team Stats", className='text-center, mb-4'),
@@ -472,17 +472,17 @@ app.layout = dbc.Container([
     dbc.Row([
         dbc.Col([
             "Result Filter",
-            dcc.Dropdown(id='result_dropdown_copy',
+            dcc.Dropdown(id='result_dropdown_copy_tpg',
                          options=['All', 'W', 'L'],
                          value='All')], width={'size': 2, 'offset': 1}, className='mb-4'),
         dbc.Col([
             "Opponent Filter",
-            dcc.Dropdown(id='opponent_dropdown_copy',
+            dcc.Dropdown(id='opponent_dropdown_copy_tpg',
                          options=[],
                          value='All')], width={'size': 2}, className='mb-4'),
         dbc.Col([
             "Custom Stat",
-            dcc.Dropdown(id='stat_dropdown',
+            dcc.Dropdown(id='stat_dropdown_tpg',
                          options=['Action Goals pg', 'Action Shots pg', 'Extra Goals pg', 'Extra Shots pg',
                                   'Center Goals pg', 'Center Shots pg', 'Foul Goals pg', 'Foul Shots pg',
                                   '6MF Goals pg', '6MF Shots pg', 'PS Goals pg', 'PS Shots pg', 'CA Goals pg',
@@ -516,11 +516,11 @@ app.layout = dbc.Container([
     Output('opStats_table', 'data'),
     Output('pGoalPie', 'figure'),
     Output('pShotPie', 'figure'),
-    Input('team_dropdown', 'value'),
-    Input('tournament_dropdown', 'value'),
-    Input('result_dropdown', 'value'),
-    Input('opponent_dropdown', 'value'),
-    Input('stat_dropdown', 'value'))
+    Input('team_dropdown_tpg', 'value'),
+    Input('tournament_dropdown_tpg', 'value'),
+    Input('result_dropdown_tpg', 'value'),
+    Input('opponent_dropdown_tpg', 'value'),
+    Input('stat_dropdown_tpg', 'value'))
 def update_tables(team, tournament, result, opponent, stat):
     teamstats = teams_master
     playerstats = players_master
@@ -561,10 +561,10 @@ def update_tables(team, tournament, result, opponent, stat):
     Output('AVGEXpie', 'figure'),
     Output('TeamGoalbar', 'figure'),
     Output('OpGoalbar', 'figure'),
-    Input('team_dropdown', 'value'),
-    Input('tournament_dropdown', 'value'),
-    Input('result_dropdown', 'value'),
-    Input('opponent_dropdown', 'value'))
+    Input('team_dropdown_tpg', 'value'),
+    Input('tournament_dropdown_tpg', 'value'),
+    Input('result_dropdown_tpg', 'value'),
+    Input('opponent_dropdown_tpg', 'value'))
 def update_charts(team, tournament, result, opponent):
     teamstats = teams_master
     teamstats = filterteamdf(team, tournament, result, opponent, teamstats)
@@ -580,11 +580,11 @@ def update_charts(team, tournament, result, opponent):
            buildbar(tgoals_fig, team, "Goals pg"), buildbar(ogoals_fig, team, "Opponent Goals pg")
 
 @app.callback(
-    Output('opponent_dropdown', 'options'),
-    Output('opponent_dropdown_copy', 'options'),
-    Input('team_dropdown', 'value'),
-    Input('tournament_dropdown', 'value'),
-    Input('result_dropdown', 'value'))
+    Output('opponent_dropdown_tpg', 'options'),
+    Output('opponent_dropdown_copy_tpg', 'options'),
+    Input('team_dropdown_tpg', 'value'),
+    Input('tournament_dropdown_tpg', 'value'),
+    Input('result_dropdown_tpg', 'value'))
 def updatedropdowns(team, tournament, result):
     teamstats = filterteamdf(team, tournament, result, 'All', teams_master)
     oplistdf = teamstats.drop(teamstats[teamstats.Team != team].index)
@@ -599,14 +599,14 @@ def updatedropdowns(team, tournament, result):
     return [{'label': t, 'value': t} for t in oplist], [{'label': t, 'value': t} for t in oplist]
 
 @app.callback(
-    [Output('result_dropdown', 'value'),
-     Output('result_dropdown_copy', 'value'),
-     Output('opponent_dropdown', 'value'),
-     Output('opponent_dropdown_copy', 'value')],
-    [Input('result_dropdown', 'value'),
-     Input('result_dropdown_copy', 'value'),
-     Input('opponent_dropdown', 'value'),
-     Input('opponent_dropdown_copy', 'value')])
+    [Output('result_dropdown_tpg', 'value'),
+     Output('result_dropdown_copy_tpg', 'value'),
+     Output('opponent_dropdown_tpg', 'value'),
+     Output('opponent_dropdown_copy_tpg', 'value')],
+    [Input('result_dropdown_tpg', 'value'),
+     Input('result_dropdown_copy_tpg', 'value'),
+     Input('opponent_dropdown_tpg', 'value'),
+     Input('opponent_dropdown_copy_tpg', 'value')])
 def linkdropdowns(result, result_copy, opponent, opponent_copy):
     ctx = callback_context
     trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
