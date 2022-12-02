@@ -10,7 +10,7 @@ from dash import callback_context # added this import to link dropdowns
 from dash.dependencies import Output, Input
 import dash_bootstrap_components as dbc
 
-# Import Data and Edit data
+# Import Data
 df = pd.read_csv('master_data_refs.csv')
 df = df.fillna(0)
 df.drop(df.columns[0], axis=1, inplace=True)
