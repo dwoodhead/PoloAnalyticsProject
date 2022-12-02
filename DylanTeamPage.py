@@ -20,6 +20,10 @@ df['Last'] = df['First'].astype(str).str[0] + '. ' + df['Last'].astype(str)
 
 # get list of teams
 teamlist = sorted(df.Team.unique().tolist())
+oplistdf = df.drop(df[df.Team != "USA"].index)
+oplist = sorted(oplistdf.Opponent.unique().tolist())
+oplist.insert(0, "Top 8")
+oplist.insert(0, "All")
 app = Dash(__name__, external_stylesheets=[dbc.themes.FLATLY])
 
 # Lists
@@ -160,7 +164,6 @@ def mergeteamdf(data):
     return master
 def filterteamdf(team, tournament, result, opponent, data):
     dff = data
-    teamlist = sorted(dff.Team.unique().tolist())
     if tournament != "All":
         dff = dff.drop(dff[dff.Tournament != tournament].index)
     if result != "All":
@@ -173,8 +176,7 @@ def filterteamdf(team, tournament, result, opponent, data):
             dff = dff[dff['Opponent'].isin(TOP_8)]
         if opponent != "TOP 8":
             dff = dff[~(dff['Opponent'] != opponent)]
-            teamlist = sorted(dff.Team.unique().tolist())
-    return dff, teamlist
+    return dff
 def filterplayerdf(team, tournament, result, opponent, df):
     dff = df
     dff = dff.drop(dff[dff.Team != team].index)
@@ -374,7 +376,7 @@ def buildppie(dff, team, titlet):
     return fig
 
 players_master = df.drop(df[df.stat_type != 'Player'].index)
-teams_master = mergeteamdf(df)
+teams_master = mergeteamdf(df).reset_index()
 
 app.layout = dbc.Container([
     dbc.Row([
@@ -408,7 +410,7 @@ app.layout = dbc.Container([
             "Opponent Filter",
             dcc.Dropdown(
                 id='opponent_dropdown',
-                options=['All', 'TOP 8', 'AUS', 'CRO', 'ESP', 'GRE', 'HUN', 'ITA', 'JPN', 'MNE', 'SRB', 'USA'],
+                options=[],
                 value='All',
             )], width={'size': 2}, id='opponent_output', className='mb-4')
     ]),     # Dropdowns
@@ -475,8 +477,7 @@ app.layout = dbc.Container([
         dbc.Col([
             "Opponent Filter",
             dcc.Dropdown(id='opponent_dropdown_copy',
-                         options=['All', 'TOP 8', 'AUS', 'CRO', 'ESP', 'GRE',
-                                  'HUN', 'ITA', 'JPN', 'MNE', 'SRB', 'USA'],
+                         options=[],
                          value='All')], width={'size': 3}, className='mb-4'),
     ]),     # Secondary Dropdowns
     dbc.Row([
@@ -511,7 +512,7 @@ def update_tables(team, tournament, result, opponent):
     teamstats = teams_master
     playerstats = players_master
 
-    teamstats, teamlist = filterteamdf(team, tournament, result, opponent, teamstats)
+    teamstats = filterteamdf(team, tournament, result, opponent, teamstats)
     playerstats = filterplayerdf(team, tournament, result, opponent, playerstats)
 
     playerComp, playerAvg = playercompile(playerstats)
@@ -536,7 +537,8 @@ def update_tables(team, tournament, result, opponent):
     pgoal_fig = playerAvg.filter(['Last', 'Goals pg'], axis=1)
     pshot_fig = playerAvg.filter(['Last', 'Shots pg'], axis=1)
 
-    return player_table, team_table, op_table, buildppie(pgoal_fig, team, "Goals by Player pg"), buildppie(pshot_fig, team, "Shots by Player pg")
+    return player_table, team_table, op_table, buildppie(pgoal_fig, team, "Goals by Player pg"), \
+           buildppie(pshot_fig, team, "Shots by Player pg")
 
 @app.callback(
     Output('TeamShootbar', 'figure'),
@@ -552,8 +554,7 @@ def update_tables(team, tournament, result, opponent):
     Input('opponent_dropdown', 'value'))
 def update_charts(team, tournament, result, opponent):
     teamstats = teams_master
-
-    teamstats, teamlist = filterteamdf(team, tournament, result, opponent, teamstats)
+    teamstats = filterteamdf(team, tournament, result, opponent, teamstats)
 
     teamComp, teamAvg = teamcompile(teamstats)
     teamAvg = addaverages(teamAvg)
@@ -566,6 +567,25 @@ def update_charts(team, tournament, result, opponent):
            buildbar(tgoals_fig, team, "Goals pg"), buildbar(ogoals_fig, team, "Opponent Goals pg")
 
 @app.callback(
+    Output('opponent_dropdown', 'options'),
+    Output('opponent_dropdown_copy', 'options'),
+    Input('team_dropdown', 'value'),
+    Input('tournament_dropdown', 'value'),
+    Input('result_dropdown', 'value'))
+def updatedropdowns(team, tournament, result):
+    teamstats = filterteamdf(team, tournament, result, 'All', teams_master)
+    oplistdf = teamstats.drop(teamstats[teamstats.Team != team].index)
+    oplist = sorted(oplistdf.Opponent.unique().tolist())
+
+    check = any(item in oplist for item in TOP_8)
+
+    if check is True:
+        oplist.insert(0, "Top 8")
+
+    oplist.insert(0, "All")
+    return [{'label': t, 'value': t} for t in oplist], [{'label': t, 'value': t} for t in oplist]
+
+@app.callback(
     [Output('result_dropdown', 'value'),
      Output('result_dropdown_copy', 'value'),
      Output('opponent_dropdown', 'value'),
@@ -574,7 +594,7 @@ def update_charts(team, tournament, result, opponent):
      Input('result_dropdown_copy', 'value'),
      Input('opponent_dropdown', 'value'),
      Input('opponent_dropdown_copy', 'value')])
-def link_dropdowns(result, result_copy, opponent, opponent_copy):
+def linkdropdowns(result, result_copy, opponent, opponent_copy):
     ctx = callback_context
     trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
     result_value = result if trigger_id == 'result_dropdown' else result_copy

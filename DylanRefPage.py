@@ -180,13 +180,13 @@ app.layout = dbc.Container([
             dcc.Dropdown(
                 id='ref_dropdown',
                 options=[{'label': r, 'value': r} for r in reflist],
-                value='KUN',
+                value='ALEXANDRESCU',
             )], width={'size': 2, 'offset': 2}, id='ref_output', className='mb-4'),
         dbc.Col([
             "Game Type Filter",
             dcc.Dropdown(
                 id='opponent_dropdown_copy',
-                options=['All', 'TOP 8', 'Knockout Rounds'],
+                options=[],
                 value='All'
             )], width={'size': 2}, id='opponent_output_copy', className='mb-4'),
     ]),  # 2nd Dropdowns
@@ -235,7 +235,7 @@ def update_table(tournament, opponent, rank):
     Output('goalGraph', 'figure'),
     Output('exGraph', 'figure'),
     Input('tournament_dropdown', 'value'),
-    Input('opponent_dropdown', 'value'),
+    Input('opponent_dropdown_copy', 'value'),
     Input('ref_dropdown', 'value'))
 def update_charts(tournament, opponent, ref):
     dff = df
@@ -255,18 +255,43 @@ def update_charts(tournament, opponent, ref):
     goaldf, exdf, gendf = reftables(dfff)
 
     return buildbar(goaldf, ref, 'Avg Goals'), buildbar(exdf, ref, 'Avg Exclusions')
-
 @app.callback(
-    [Output('opponent_dropdown', 'value'),
-     Output('opponent_dropdown_copy', 'value')],
-    [Input('opponent_dropdown', 'value'),
-     Input('opponent_dropdown_copy', 'value')])
-def link_dropdowns(opponent, opponent_copy):
-    ctx = callback_context
-    trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
-    opponent_value = opponent if trigger_id == 'opponent_dropdown' else opponent_copy
+    [Output('opponent_dropdown_copy', 'options'),
+     Output('ref_dropdown', 'value')],
+    [Input('ref_dropdown', 'value'),
+    Input('opponent_dropdown_copy', 'value')])
+def updatedropdowns(ref, opponent):
+    refdff = pd.DataFrame()
+    refdf = df.filter(['Ref', 'Team', 'Match Number'])
 
-    return opponent_value, opponent_value
+    for index, row in refdf.iterrows():
+        if ref == row['Ref']:
+            refdff = pd.concat([refdff, row], axis=1)
+    refdff = refdff.T
+
+    teamlist = sorted(refdff.Team.unique().tolist())
+    gamelist = sorted(refdff['Match Number'].unique().tolist())
+
+    topcheck = any(item in teamlist for item in TOP_8)
+    gamecheck = any(item in gamelist for item in KNOCK_GAMES)
+
+    retlist = ['All']
+
+    if topcheck is True:
+        retlist.insert(1, "Top 8")
+    else:
+        if opponent == "Top 8":
+            ref = "ALEXANDRESCU"
+    if gamecheck is True:
+        retlist.insert(1, "Knockout Rounds")
+    else:
+        if opponent == "Knockout Rounds":
+            ref = "ALEXANDRESCU"
+
+    if ref == "":
+        ref = "ALEXANDRESCU"
+
+    return [{'label': t, 'value': t} for t in retlist], ref
 
 if __name__ == '__main__':
     app.run_server(debug=True)
