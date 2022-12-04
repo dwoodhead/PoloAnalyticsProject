@@ -195,7 +195,19 @@ app.layout = dbc.Container([
             dcc.Graph(id="goalGraph_ref", style={'width': '48%', 'display': 'inline-block'}),
             dcc.Graph(id="exGraph_ref", style={'width': '48%', 'display': 'inline-block'})
         ], width=12, className='mb-4')
-    ])  # Player Charts
+    ]),  # Player Charts
+    dbc.Row([
+        dbc.Col(html.H4("Referee Analysis Limitations",
+                        className='text-center, mb-4'),
+                width=12)
+    ]),  # Ref Limitations Title
+    dbc.Row([
+        dbc.Col(html.Div("The referee analysis is based on game statistics where the referee was one of two referees on"
+                         "the game. Thus, referee values have less relation with the specific ref the less games (pop"
+                         "size) they have documented.",
+                        className='text-center, mb-4'),
+                width=12)
+    ])  # Ref Limitations Text
 ])
 
 @app.callback(
