@@ -1,21 +1,17 @@
-from dash import dash_table
+from dash import dash_table, callback
 from dash import Dash
 from dash import dcc
 from dash import html
-import plotly.graph_objects as go
-from dash import callback_context
 import pandas as pd
 from dash.dependencies import Output, Input
 import dash_bootstrap_components as dbc
 
-df = pd.read_csv('master_data_refs.csv')
+df = pd.read_csv('../master_data_refs.csv')
 df = df.fillna(0)
 df.drop(df.columns[0], axis=1, inplace=True)
 df['Outcome'] = df['Outcome'].replace('W', 1)
 df['Outcome'] = df['Outcome'].replace('L', 0)
 df['Last'] = df['Last'].astype(str) + ' ' + df['First'].astype(str).str[0] + '.'
-
-app = Dash(__name__, external_stylesheets=[dbc.themes.FLATLY])
 
 # Lists
 TOP_8 = ['ITA', 'GRE', 'SRB', 'USA', 'HUN', 'ESP', 'CRO', 'MNE']
@@ -214,7 +210,10 @@ def gettable(playerComp, playerAvg, stat, sort):
 players_master = df.drop(df[df.stat_type != 'Player'].index)
 teams_master = mergeteamdf(df).reset_index()
 
-app.layout = dbc.Container([
+# app = Dash(__name__, external_stylesheets=[dbc.themes.FLATLY])
+Dash.register_page(__name__)
+
+layout = dbc.Container([
     dbc.Row([
         dbc.Col(html.H1("Team Analysis",
                         className='text-center, mb-4'),
@@ -270,7 +269,7 @@ app.layout = dbc.Container([
     ]),     # Team Table
 ])
 
-@app.callback(
+@callback(
     Output('playerStats_table_rpg', 'data'),
     Input('stat_dropdown_rpg', 'value'),
     Input('tournament_dropdown_rpg', 'value'),
@@ -291,6 +290,3 @@ def update_tables(stat, tournament, gamet, sort):
     player_table = table1.to_dict('records')
 
     return player_table
-
-if __name__ == '__main__':
-    app.run_server(debug=True)

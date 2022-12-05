@@ -1,19 +1,17 @@
-from dash import dash_table
+from dash import dash_table, callback
 from dash import Dash
 from dash import dcc
 from dash import html
 import plotly.graph_objects as go
-from dash import callback_context
 import pandas as pd
 from dash.dependencies import Output, Input
 import dash_bootstrap_components as dbc
 
 # Import Data
-df = pd.read_csv('master_data_refs.csv')
+df = pd.read_csv('../master_data_refs.csv')
 df = df.fillna(0)
 df.drop(df.columns[0], axis=1, inplace=True)
 
-app = Dash(__name__, external_stylesheets=[dbc.themes.FLATLY])
 refs = pd.concat([df['Ref 1'], df['Ref 2']])
 reflist = sorted(refs.unique().tolist())
 
@@ -129,7 +127,10 @@ def buildbar(dff, ref, titlet):
 
 df = mergedf(df)
 
-app.layout = dbc.Container([
+# app = Dash(__name__, external_stylesheets=[dbc.themes.FLATLY])
+Dash.register_page(__name__)
+
+layout = dbc.Container([
     dbc.Row([
         dbc.Col(html.H1("Referee Analysis",
                         className='text-center, mb-4'),
@@ -210,7 +211,7 @@ app.layout = dbc.Container([
     ])  # Ref Limitations Text
 ])
 
-@app.callback(
+@callback(
     Output('refTable', 'data'),
     Input('tournament_dropdown_ref', 'value'),
     Input('opponent_dropdown_ref', 'value'),
@@ -243,7 +244,7 @@ def update_table(tournament, opponent, rank):
 
     return refTable
 
-@app.callback(
+@callback(
     Output('goalGraph_ref', 'figure'),
     Output('exGraph_ref', 'figure'),
     Input('tournament_dropdown_ref', 'value'),
@@ -267,7 +268,7 @@ def update_charts(tournament, opponent, ref):
     goaldf, exdf, gendf = reftables(dfff)
 
     return buildbar(goaldf, ref, 'Avg Goals'), buildbar(exdf, ref, 'Avg Exclusions')
-@app.callback(
+@callback(
     [Output('opponent_dropdown_copy_ref', 'options'),
      Output('ref_dropdown', 'value')],
     [Input('ref_dropdown', 'value'),
@@ -304,6 +305,3 @@ def updatedropdowns(ref, opponent):
         ref = "ALEXANDRESCU"
 
     return [{'label': t, 'value': t} for t in retlist], ref
-
-if __name__ == '__main__':
-    app.run_server(debug=True)

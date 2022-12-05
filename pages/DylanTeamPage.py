@@ -2,16 +2,16 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-from dash import dash_table
+from dash import dash_table, callback
 from dash import Dash
 from dash import dcc
 from dash import html
-from dash import callback_context # added this import to link dropdowns
+from dash import callback_context  # added this import to link dropdowns
 from dash.dependencies import Output, Input
 import dash_bootstrap_components as dbc
 
 # Import Data
-df = pd.read_csv('master_data_refs.csv')
+df = pd.read_csv('../master_data_refs.csv')
 df = df.fillna(0)
 df.drop(df.columns[0], axis=1, inplace=True)
 df['Outcome'] = df['Outcome'].replace('W', 1)
@@ -24,7 +24,6 @@ oplistdf = df.drop(df[df.Team != "USA"].index)
 oplist = sorted(oplistdf.Opponent.unique().tolist())
 oplist.insert(0, "Top 8")
 oplist.insert(0, "All")
-app = Dash(__name__, external_stylesheets=[dbc.themes.FLATLY])
 
 # Lists
 TOP_8 = ['ITA', 'GRE', 'SRB', 'USA', 'HUN', 'ESP', 'CRO', 'MNE']
@@ -177,8 +176,8 @@ def filterteamdf(team, tournament, result, opponent, data):
         if opponent != "TOP 8":
             dff = dff[~(dff['Opponent'] != opponent)]
     return dff
-def filterplayerdf(team, tournament, result, opponent, df):
-    dff = df
+def filterplayerdf(team, tournament, result, opponent, df2):
+    dff = df2
     dff = dff.drop(dff[dff.Team != team].index)
     if tournament != "All":
         dff = dff.drop(dff[dff.Tournament != tournament].index)
@@ -192,6 +191,7 @@ def filterplayerdf(team, tournament, result, opponent, df):
             dff = dff[dff['Opponent'].isin(TOP_8)]
         if opponent != "TOP 8":
             dff = dff[~(dff['Opponent'] != opponent)]
+
     return dff
 def playercompile(df2):
     playerComp = df2.groupby('Last').sum(numeric_only=True).reset_index()
@@ -298,7 +298,7 @@ def getchartdfs(dff, team):
     # o_ex.drop('Team', inplace=True, axis=1)
 
     return t_shootp.reindex(), o_shootp.reindex(), t_ex.reindex(), o_ex.reindex(), avg_ex.reindex(), t_goals.reindex(), o_goals.reindex()
-def buildbar(dff, team, titlet):
+def buildbar(dff, team, titlet, opponent):
     data = dff
     headers = list(data.columns.values)
     fig = go.Figure()
@@ -307,6 +307,7 @@ def buildbar(dff, team, titlet):
         y=data.iloc[0],
         name=team
     ))
+
     fig.add_trace(go.Bar(
         x=headers,
         y=data.iloc[1],
@@ -379,7 +380,10 @@ def buildppie(dff, team, titlet):
 players_master = df.drop(df[df.stat_type != 'Player'].index)
 teams_master = mergeteamdf(df).reset_index()
 
-app.layout = dbc.Container([
+# app = Dash(__name__, external_stylesheets=[dbc.themes.FLATLY])
+Dash.register_page(__name__)
+
+layout = dbc.Container([
     dbc.Row([
         dbc.Col(html.H1("Team Analysis",
                         className='text-center, mb-4'),
@@ -510,7 +514,7 @@ app.layout = dbc.Container([
     ]),     # Player Charts
 ])
 
-@app.callback(
+@callback(
     Output('playerStats_table', 'data'),
     Output('teamStats_table', 'data'),
     Output('opStats_table', 'data'),
@@ -553,7 +557,7 @@ def update_tables(team, tournament, result, opponent, stat):
     return player_table, team_table, op_table, buildppie(pgoal_fig, team, "Goals by Player pg"), \
            buildppie(pshot_fig, team, "Shots by Player pg")
 
-@app.callback(
+@callback(
     Output('TeamShootbar', 'figure'),
     Output('OpShootbar', 'figure'),
     Output('DEXpie', 'figure'),
@@ -574,12 +578,12 @@ def update_charts(team, tournament, result, opponent):
 
     tshoot_fig, opshoot_fig, tdex_fig, opex_fig, avgex_fig, tgoals_fig, ogoals_fig = getchartdfs(teamAvg, team)
 
-    return buildbar(tshoot_fig, team, "Team Shooting %"), buildbar(opshoot_fig, team, "Opponent Shooting %"), \
+    return buildbar(tshoot_fig, team, "Team Shooting %", opponent), buildbar(opshoot_fig, team, "Opponent Shooting %", opponent), \
            buildpie(tdex_fig, team, "Team DEX pg"), buildpie(opex_fig, team, "Team EX pg"), \
             buildpie(avgex_fig, team, "Top 8 Avg EX"), \
-           buildbar(tgoals_fig, team, "Goals pg"), buildbar(ogoals_fig, team, "Opponent Goals pg")
+           buildbar(tgoals_fig, team, "Goals pg", opponent), buildbar(ogoals_fig, team, "Opponent Goals pg", opponent)
 
-@app.callback(
+@callback(
     Output('opponent_dropdown_tpg', 'options'),
     Output('opponent_dropdown_copy_tpg', 'options'),
     Input('team_dropdown_tpg', 'value'),
@@ -593,12 +597,12 @@ def updatedropdowns(team, tournament, result):
     check = any(item in oplist for item in TOP_8)
 
     if check is True:
-        oplist.insert(0, "Top 8")
+        oplist.insert(0, "TOP 8")
 
     oplist.insert(0, "All")
     return [{'label': t, 'value': t} for t in oplist], [{'label': t, 'value': t} for t in oplist]
 
-@app.callback(
+@callback(
     [Output('result_dropdown_tpg', 'value'),
      Output('result_dropdown_copy_tpg', 'value'),
      Output('opponent_dropdown_tpg', 'value'),
@@ -610,10 +614,7 @@ def updatedropdowns(team, tournament, result):
 def linkdropdowns(result, result_copy, opponent, opponent_copy):
     ctx = callback_context
     trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
-    result_value = result if trigger_id == 'result_dropdown' else result_copy
-    opponent_value = opponent if trigger_id == 'opponent_dropdown' else opponent_copy
+    result_value = result if trigger_id == 'result_dropdown_tpg' else result_copy
+    opponent_value = opponent if trigger_id == 'opponent_dropdown_tpg' else opponent_copy
 
     return result_value, result_value, opponent_value, opponent_value
-
-if __name__ == '__main__':
-    app.run_server(debug=True)
