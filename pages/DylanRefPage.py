@@ -1,14 +1,15 @@
+import dash
 from dash import dash_table, callback
-from dash import Dash
 from dash import dcc
 from dash import html
+
 import plotly.graph_objects as go
 import pandas as pd
 from dash.dependencies import Output, Input
 import dash_bootstrap_components as dbc
 
 # Import Data
-df = pd.read_csv('../master_data_refs.csv')
+df = pd.read_csv('data/master_data_refs.csv')
 df = df.fillna(0)
 df.drop(df.columns[0], axis=1, inplace=True)
 
@@ -67,8 +68,7 @@ def winlossdf(master):
     genTable['Avg Goal Diff'] = winAvg['Winner Goals pg'] - loserAvg['Loser Goals pg']
     genTable = genTable.reset_index()
     genTable = genTable[
-        ['Ref', 'Total Goals pg', 'Winner Goals pg', 'Loser Goals pg', 'Avg Goal Diff', 'Total EX pg', 'Winner EX pg',
-         'Loser EX pg', 'Total TF pg', 'Winner TF pg', 'Loser TF pg']]
+        ['Ref', 'Total Goals pg', 'Avg Goal Diff', 'Total EX pg', 'Total TF pg']]
 
     return genTable.round(2)
 def refavgdf(master):
@@ -128,7 +128,7 @@ def buildbar(dff, ref, titlet):
 df = mergedf(df)
 
 # app = Dash(__name__, external_stylesheets=[dbc.themes.FLATLY])
-Dash.register_page(__name__)
+dash.register_page(__name__, name="Ref Analysis")
 
 layout = dbc.Container([
     dbc.Row([
@@ -269,10 +269,10 @@ def update_charts(tournament, opponent, ref):
 
     return buildbar(goaldf, ref, 'Avg Goals'), buildbar(exdf, ref, 'Avg Exclusions')
 @callback(
-    [Output('opponent_dropdown_copy_ref', 'options'),
-     Output('ref_dropdown', 'value')],
-    [Input('ref_dropdown', 'value'),
-        Input('opponent_dropdown_copy_ref', 'value')])
+    Output('opponent_dropdown_copy_ref', 'options'),
+    Output('ref_dropdown', 'value'),
+    Input('ref_dropdown', 'value'),
+    Input('opponent_dropdown_copy_ref', 'value'))
 def updatedropdowns(ref, opponent):
     refdff = pd.DataFrame()
     refdf = df.filter(['Ref', 'Team', 'Match Number'])

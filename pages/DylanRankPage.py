@@ -1,12 +1,12 @@
+import dash
 from dash import dash_table, callback
-from dash import Dash
 from dash import dcc
 from dash import html
 import pandas as pd
 from dash.dependencies import Output, Input
 import dash_bootstrap_components as dbc
 
-df = pd.read_csv('../master_data_refs.csv')
+df = pd.read_csv('data/master_data_refs.csv')
 df = df.fillna(0)
 df.drop(df.columns[0], axis=1, inplace=True)
 df['Outcome'] = df['Outcome'].replace('W', 1)
@@ -211,7 +211,7 @@ players_master = df.drop(df[df.stat_type != 'Player'].index)
 teams_master = mergeteamdf(df).reset_index()
 
 # app = Dash(__name__, external_stylesheets=[dbc.themes.FLATLY])
-Dash.register_page(__name__)
+dash.register_page(__name__, name="Player Ranking")
 
 layout = dbc.Container([
     dbc.Row([

@@ -1,9 +1,9 @@
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import dash
 
 from dash import dash_table, callback
-from dash import Dash
 from dash import dcc
 from dash import html
 from dash import callback_context  # added this import to link dropdowns
@@ -11,7 +11,7 @@ from dash.dependencies import Output, Input
 import dash_bootstrap_components as dbc
 
 # Import Data
-df = pd.read_csv('../master_data_refs.csv')
+df = pd.read_csv('data/master_data_refs.csv')
 df = df.fillna(0)
 df.drop(df.columns[0], axis=1, inplace=True)
 df['Outcome'] = df['Outcome'].replace('W', 1)
@@ -380,8 +380,7 @@ def buildppie(dff, team, titlet):
 players_master = df.drop(df[df.stat_type != 'Player'].index)
 teams_master = mergeteamdf(df).reset_index()
 
-# app = Dash(__name__, external_stylesheets=[dbc.themes.FLATLY])
-Dash.register_page(__name__)
+dash.register_page(__name__, name="Team Analysis")
 
 layout = dbc.Container([
     dbc.Row([
@@ -618,3 +617,4 @@ def linkdropdowns(result, result_copy, opponent, opponent_copy):
     opponent_value = opponent if trigger_id == 'opponent_dropdown_tpg' else opponent_copy
 
     return result_value, result_value, opponent_value, opponent_value
+
