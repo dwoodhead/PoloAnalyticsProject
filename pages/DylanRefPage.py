@@ -9,7 +9,7 @@ from dash.dependencies import Output, Input
 import dash_bootstrap_components as dbc
 
 # Import Data
-df = pd.read_csv('data/master_data_refs.csv')
+df = pd.read_csv('data/master_data_all.csv')
 df = df.fillna(0)
 df.drop(df.columns[0], axis=1, inplace=True)
 
@@ -85,8 +85,8 @@ def refavgdf(master):
     return masterAvg
 def reftables(dff):
 
-    goaldf = dff.filter(['Ref', 'Goals', 'Action Goals', 'Center Goals', 'Drive Goals', 'Extra Goals', '6MF Goals', 'Counter Goals'])
-    exdf = dff.filter(['Ref', 'Total EX', 'CP EX', 'FP EX', 'CS EX', 'M6 EX', 'P EX'])
+    goaldf = dff.filter(['Ref', 'Goals', 'Action Goals', 'Center Goals', 'Extra Goals', 'CA Goals', 'PS Goals'])
+    exdf = dff.filter(['Ref', 'Total EX', 'CP EX', 'FP EX', 'DE EX', 'P EX'])
     gendf = dff.filter(['Ref', 'BL', 'ST', 'Shots'])
 
     return goaldf.round(2), exdf.round(2), gendf.round(2)
@@ -204,8 +204,8 @@ layout = dbc.Container([
     ]),  # Ref Limitations Title
     dbc.Row([
         dbc.Col(html.Div("The referee analysis is based on game statistics where the referee was one of two referees on"
-                         "the game. Thus, referee values have less relation with the specific ref the less games (pop"
-                         "size) they have documented.",
+                         " the game. Thus, referee values have less relation with the specific ref the less games (pop"
+                         " size) they have documented.",
                         className='text-center, mb-4'),
                 width=12)
     ])  # Ref Limitations Text
