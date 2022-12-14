@@ -6,7 +6,7 @@ import pandas as pd
 from dash.dependencies import Output, Input
 import dash_bootstrap_components as dbc
 
-df = pd.read_csv('data/master_data_refs.csv')
+df = pd.read_csv('data/master_data_all.csv')
 df = df.fillna(0)
 df.drop(df.columns[0], axis=1, inplace=True)
 df['Outcome'] = df['Outcome'].replace('W', 1)
@@ -15,94 +15,86 @@ df['Last'] = df['Last'].astype(str) + ' ' + df['First'].astype(str).str[0] + '.'
 
 # Lists
 TOP_8 = ['ITA', 'GRE', 'SRB', 'USA', 'HUN', 'ESP', 'CRO', 'MNE']
+KNOCK_GAMES = [31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42]
 OpNames = {'Opponent': 'TeamT', 'Team': 'OpponentO',
             'Goals': 'Goals Ag', 'Shots': 'Shots Ag',
             'Action Goals': 'Action Goals Ag', 'Action Shots': 'Action Shots Ag',
             'Center Goals': 'Center Goals Ag', 'Center Shots': 'Center Shots Ag',
-            'Drive Goals': 'Drive Goals Ag', 'Drive Shots': 'Drive Shots Ag',
             'Extra Goals': 'Extra Goals Ag', 'Extra Shots': 'Extra Shots Ag',
             'Foul Goals': 'Foul Goals Ag', 'Foul Shots': 'Foul Shots Ag',
-            '6MF Goals': '6MF Goals Ag', '6MF Shots': '6MF Shots Ag',
             'CA Goals': 'CA Goals Ag', 'CA Shots': 'CA Shots Ag',
             'PS Goals': 'PS Goals Ag', 'PS Shots': 'PS Shots Ag',
-            'TF': 'TF Ag', 'ST': 'ST Ag', 'RB': 'RB Ag', 'BL': 'BL Ag',
-            'CP EX': 'CP DEX', 'FP EX': 'FP DEX', 'DS EX': 'DS DEX',
-            'M6 EX': 'M6 DEX', 'CS EX': 'CS DEX', 'DE':'DE DEX', 'P EX': 'P DEX',
+            'TF': 'TF Ag', 'ST': 'ST Ag', 'BL': 'BL Ag',
+            'CP EX': 'CP DEX', 'FP EX': 'FP DEX',
+            'DE EX':'DE DEX', 'P EX': 'P DEX',
             'Total EX': 'Total DEX'}
 PAVG_NAMES = {'Goals': 'Goals pg', 'Shots': 'Shots pg',
              'Action Goals': 'Action Goals pg', 'Action Shots': 'Action Shots pg',
              'Extra Goals': 'Extra Goals pg', 'Extra Shots': 'Extra Shots pg',
              'Center Goals': 'Center Goals pg', 'Center Shots': 'Center Shots pg',
              'Foul Goals': 'Foul Goals pg', 'Foul Shots': 'Foul Shots pg',
-             '6MF Goals': '6MF Goals pg', '6MF Shots': '6MF Shots pg',
              'PS Goals': 'PS Goals pg', 'PS Shots': 'PS Shots pg',
              'CA Goals': 'CA Goals pg', 'CA Shots': 'CA Shots pg',
-             'TF': 'TF pg', 'ST': 'ST pg', 'RB': 'RB pg', 'BL': 'BL pg',
+             'TF': 'TF pg', 'ST': 'ST pg', 'BL': 'BL pg',
              'SP Won': 'SP Won pg', 'SP Attempts': 'SP Attempts pg',
-             'CP EX': 'CP EX pg', 'FP EX': 'FP EX pg', 'DS EX': 'DS EX pg',
-             'M6 EX': 'M6 EX pg', 'CS EX': 'CS EX pg', 'DE': 'DE pg', 'P EX': 'P EX pg',
+             'CP EX': 'CP EX pg', 'FP EX': 'FP EX pg',
+             'DE EX': 'DE EX pg', 'P EX': 'P EX pg',
              'Total EX': 'Total EX pg', 'Outcome': 'Games'}
 PAVG_COLS = {'Goals': 'mean', 'Shots': 'mean',
              'Action Goals': 'mean', 'Action Shots': 'mean',
              'Extra Goals': 'mean', 'Extra Shots': 'mean',
              'Center Goals': 'mean', 'Center Shots': 'mean',
              'Foul Goals': 'mean', 'Foul Shots': 'mean',
-             '6MF Goals': 'mean', '6MF Shots': 'mean',
              'PS Goals': 'mean', 'PS Shots': 'mean',
              'CA Goals': 'mean', 'CA Shots': 'mean',
-             'TF': 'mean', 'ST': 'mean', 'RB': 'mean', 'BL': 'mean',
+             'TF': 'mean', 'ST': 'mean', 'BL': 'mean',
              'SP Won': 'mean', 'SP Attempts': 'mean',
-             'CP EX': 'mean', 'FP EX': 'mean', 'DS EX': 'mean', 'M6 EX': 'mean', 'CS EX': 'mean', 'DE': 'mean', 'P EX': 'mean',
+             'CP EX': 'mean', 'FP EX': 'mean', 'DE EX': 'mean', 'P EX': 'mean',
              'Total EX': 'mean', 'Outcome': 'count'}
 TAVG_NAMES = {'Goals': 'Goals pg', 'Shots': 'Shots pg',
              'Action Goals': 'Action Goals pg', 'Action Shots': 'Action Shots pg',
              'Extra Goals': 'Extra Goals pg', 'Extra Shots': 'Extra Shots pg',
              'Center Goals': 'Center Goals pg', 'Center Shots': 'Center Shots pg',
              'Foul Goals': 'Foul Goals pg', 'Foul Shots': 'Foul Shots pg',
-             '6MF Goals': '6MF Goals pg', '6MF Shots': '6MF Shots pg',
              'PS Goals': 'PS Goals pg', 'PS Shots': 'PS Shots pg',
              'CA Goals': 'CA Goals pg', 'CA Shots': 'CA Shots pg',
-             'TF': 'TF pg', 'ST': 'ST pg', 'RB': 'RB pg', 'BL': 'BL pg',
+             'TF': 'TF pg', 'ST': 'ST pg', 'BL': 'BL pg',
              'SP Won': 'SP Won pg', 'SP Attempts': 'SP Attempts pg',
-             'CP EX': 'CP EX pg', 'FP EX': 'FP EX pg', 'DS EX': 'DS EX pg',
-             'M6 EX': 'M6 EX pg', 'CS EX': 'CS EX pg', 'DE': 'DE pg', 'P EX': 'P EX pg',
+             'CP EX': 'CP EX pg', 'FP EX': 'FP EX pg',
+             'DE EX': 'DE EX pg', 'P EX': 'P EX pg',
              'Total EX': 'Total EX pg',
              'Goals Ag': 'Goals Ag pg', 'Shots Ag': 'Shots Ag pg',
              'Action Goals Ag': 'Action Goals Ag pg', 'Action Shots Ag': 'Action Shots Ag pg',
              'Extra Goals Ag': 'Extra Goals Ag pg', 'Extra Shots Ag': 'Extra Shots Ag pg',
              'Center Goals Ag': 'Center Goals Ag pg', 'Center Shots Ag': 'Center Shots Ag pg',
              'Foul Goals Ag': 'Foul Goals Ag pg', 'Foul Shots Ag': 'Foul Shots Ag pg',
-             '6MF Goals Ag': '6MF Goals Ag pg', '6MF Shots Ag': '6MF Shots Ag pg',
              'PS Goals Ag': 'PS Goals Ag pg', 'PS Shots Ag': 'PS Shots Ag pg',
              'CA Goals Ag': 'CA Goals Ag pg', 'CA Shots Ag': 'CA Shots Ag pg',
-             'TF Ag': 'TF Ag pg', 'ST Ag': 'ST Ag pg', 'RB Ag': 'RB Ag pg', 'BL Ag': 'BL Ag pg',
-             'CP DEX': 'CP DEX pg', 'FP DEX': 'FP DEX pg', 'DS DEX': 'DS DEX pg',
-             'M6 DEX': 'M6 DEX pg', 'CS DEX': 'CS DEX pg', 'DE DEX': 'DEX pg', 'P DEX': 'P DEX pg',
+             'TF Ag': 'TF Ag pg', 'ST Ag': 'ST Ag pg', 'BL Ag': 'BL Ag pg',
+             'CP DEX': 'CP DEX pg', 'FP DEX': 'FP DEX pg',
+             'DE DEX': 'DE DEX pg', 'P DEX': 'P DEX pg',
              'Total DEX': 'Total DEX pg', 'Outcome': 'Games'}
 TAVG_COLS = {'Goals': 'mean', 'Shots': 'mean',
              'Action Goals': 'mean', 'Action Shots': 'mean',
              'Extra Goals': 'mean', 'Extra Shots': 'mean',
              'Center Goals': 'mean', 'Center Shots': 'mean',
              'Foul Goals': 'mean', 'Foul Shots': 'mean',
-             '6MF Goals': 'mean', '6MF Shots': 'mean',
              'PS Goals': 'mean', 'PS Shots': 'mean',
              'CA Goals': 'mean', 'CA Shots': 'mean',
-             'TF': 'mean', 'ST': 'mean', 'RB': 'mean', 'BL': 'mean',
+             'TF': 'mean', 'ST': 'mean', 'BL': 'mean',
              'SP Won': 'mean', 'SP Attempts': 'mean',
-             'CP EX': 'mean', 'FP EX': 'mean', 'DS EX': 'mean', 'M6 EX': 'mean',
-             'CS EX': 'mean', 'DE': 'mean', 'P EX': 'mean', 'Total EX': 'mean',
+             'CP EX': 'mean', 'FP EX': 'mean',
+             'DE EX': 'mean', 'P EX': 'mean', 'Total EX': 'mean',
              'Goals Ag': 'mean', 'Shots Ag': 'mean',
              'Action Goals Ag': 'mean', 'Action Shots Ag': 'mean',
              'Extra Goals Ag': 'mean', 'Extra Shots Ag': 'mean',
              'Center Goals Ag': 'mean', 'Center Shots Ag': 'mean',
              'Foul Goals Ag': 'mean', 'Foul Shots Ag': 'mean',
-             '6MF Goals Ag': 'mean', '6MF Shots Ag': 'mean',
              'PS Goals Ag': 'mean', 'PS Shots Ag': 'mean',
              'CA Goals Ag': 'mean', 'CA Shots Ag': 'mean',
-             'TF Ag': 'mean', 'ST Ag': 'mean', 'RB Ag': 'mean', 'BL Ag': 'mean',
-             'CP DEX': 'mean', 'FP DEX': 'mean', 'DS DEX': 'mean', 'M6 DEX': 'mean',
-             'CS DEX': 'mean', 'DE DEX': 'mean', 'P DEX': 'mean', 'Total DEX': 'mean', 'Outcome': 'count'}
-KNOCK_GAMES = [31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42]
+             'TF Ag': 'mean', 'ST Ag': 'mean', 'BL Ag': 'mean',
+             'CP DEX': 'mean', 'FP DEX': 'mean',
+             'DE DEX': 'mean', 'P DEX': 'mean', 'Total DEX': 'mean', 'Outcome': 'count'}
 
 # Styles
 tableheaderstyle = {'backgroundColor': 'rgb(220, 220, 220)',
@@ -171,7 +163,6 @@ def playercompile(df2):
     playerAvg['Center Shooting %'] = playerComp['Center Goals'] * 100 / playerComp['Center Shots']
     playerAvg['Action Shooting %'] = playerComp['Action Goals'] * 100 / playerComp['Action Shots']
     playerAvg['Foul Shooting %'] = playerComp['Foul Goals'] * 100 / playerComp['Foul Shots']
-    playerAvg['6MF Shooting %'] = playerComp['6MF Goals'] * 100 / playerComp['6MF Shots']
     playerAvg['PS Shooting %'] = playerComp['PS Goals'] * 100 / playerComp['PS Shots']
     playerAvg['CA Shooting %'] = playerComp['CA Goals'] * 100 / playerComp['CA Shots']
 
@@ -180,7 +171,6 @@ def playercompile(df2):
     playerComp['Center Shooting %'] = playerComp['Center Goals'] * 100 / playerComp['Center Shots']
     playerComp['Action Shooting %'] = playerComp['Action Goals'] * 100 / playerComp['Action Shots']
     playerComp['Foul Shooting %'] = playerComp['Foul Goals'] * 100 / playerComp['Foul Shots']
-    playerComp['6MF Shooting %'] = playerComp['6MF Goals'] * 100 / playerComp['6MF Shots']
     playerComp['PS Shooting %'] = playerComp['PS Goals'] * 100 / playerComp['PS Shots']
     playerComp['CA Shooting %'] = playerComp['CA Goals'] * 100 / playerComp['CA Shots']
 
@@ -190,11 +180,11 @@ def gettable(playerComp, playerAvg, stat, sort):
             ['Last', stat], axis=1)
 
     if stat != 'Shooting %' and stat != 'Extra Shooting %' and stat != 'Center Shooting %' and \
-            stat != 'Action Shooting %' and stat != 'Foul Shooting %' and stat != '6MF Shooting %' and \
+            stat != 'Action Shooting %' and stat != 'Foul Shooting %' and \
             stat != 'PS Shooting %' and stat != 'CA Shooting %':
         table1[stat + ' pg'] = playerComp[stat] / playerAvg['Games']
         table1['Minutes per ' + stat] = playerAvg['Minutes pg'] / table1[stat + ' pg']
-
+    
     table1['Games'] = playerAvg['Games']
     table1['Minutes pg'] = playerAvg['Minutes pg']
 
@@ -227,11 +217,11 @@ layout = dbc.Container([
                 options=['Goals', 'Shots', 'Total EX', 'Minutes',
                          'Action Goals', 'Action Shots', 'Extra Goals', 'Extra Shots',
                          'Center Goals', 'Center Shots', 'Foul Goals', 'Foul Shots',
-                         '6MF Goals', '6MF Shots', 'PS Goals', 'PS Shots', 'CA Goals',
-                         'CA Shots', 'TF', 'ST', 'RB', 'BL', 'SP Won', 'SP Attempts',
-                         'CP EX', 'FP EX', 'DS EX', 'M6 EX', 'CS EX', 'DE', 'P EX', 'Shooting %',
+                         'PS Goals', 'PS Shots', 'CA Goals',
+                         'CA Shots', 'TF', 'ST', 'BL', 'SP Won', 'SP Attempts',
+                         'CP EX', 'FP EX', 'DE EX', 'P EX', 'Shooting %',
                          'Extra Shooting %', 'Center Shooting %', 'Action Shooting %', 'Foul Shooting %',
-                         '6MF Shooting %', 'PS Shooting %', 'CA Shooting %'],
+                         'PS Shooting %', 'CA Shooting %'],
                 value='Goals',
             )], width={'size': 2, 'offset': 1}, id='stat_output_rpg', className='mb-4'),
         dbc.Col([
