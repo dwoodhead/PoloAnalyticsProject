@@ -15,7 +15,10 @@ df['Last'] = df['Last'].astype(str) + ' ' + df['First'].astype(str).str[0] + '.'
 
 # Lists
 TOP_8 = ['ITA', 'GRE', 'SRB', 'USA', 'HUN', 'ESP', 'CRO', 'MNE']
-KNOCK_GAMES = [31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42]
+KNOCK_GAMES = ['OLY2020-31', 'OLY2020-32', 'OLY2020-33', 'OLY2020-34', 'OLY2020-35', 'OLY2020-36',
+               'OLY2020-37', 'OLY2020-38', 'OLY2020-39', 'OLY2020-40', 'OLY2020-41', 'OLY2020-42',
+               'WC2022-41', 'WC2022-42', 'WC2022-43', 'WC2022-44', 'WC2022-45', 'WC2022-46',
+               'WC2022-47', 'WC2022-48', 'WC2022-35', 'WC2022-36', 'WC2022-37', 'WC2022-38']
 OpNames = {'Opponent': 'TeamT', 'Team': 'OpponentO',
             'Goals': 'Goals Ag', 'Shots': 'Shots Ag',
             'Action Goals': 'Action Goals Ag', 'Action Shots': 'Action Shots Ag',
@@ -184,6 +187,19 @@ def gettable(playerComp, playerAvg, stat, sort):
             stat != 'PS Shooting %' and stat != 'CA Shooting %':
         table1[stat + ' pg'] = playerComp[stat] / playerAvg['Games']
         table1['Minutes per ' + stat] = playerAvg['Minutes pg'] / table1[stat + ' pg']
+    else:
+        if stat == 'Shooting %':
+            table1['Shots'] = playerComp['Shots']
+        if stat == 'Extra Shooting %':
+            table1['Extra Shots'] = playerComp['Extra Shots']
+        if stat == 'Center Shooting %':
+            table1['Center Shots'] = playerComp['Center Shots']
+        if stat == 'Action Shooting %':
+            table1['Action Shots'] = playerComp['Action Shots']
+        if stat == 'Foul Shooting %':
+            table1['Foul Shots'] = playerComp['Foul Shots']
+        if stat == 'PS Shooting %':
+            table1['PS Shots'] = playerComp['PS Shots']
     
     table1['Games'] = playerAvg['Games']
     table1['Minutes pg'] = playerAvg['Minutes pg']
@@ -205,7 +221,7 @@ dash.register_page(__name__, name="Player Ranking")
 
 layout = dbc.Container([
     dbc.Row([
-        dbc.Col(html.H1("Team Analysis",
+        dbc.Col(html.H1("Player Rank Page",
                         className='text-center, mb-4'),
                 width=12)
     ]),     # Title
@@ -228,7 +244,7 @@ layout = dbc.Container([
             "Tournament Filter",
             dcc.Dropdown(
                 id='tournament_dropdown_rpg',
-                options=['All', 'OLY2020'],
+                options=['All', 'OLY2020', 'WC2022', 'EC2022'],
                 value='All',
             )], width={'size': 2}, id='tournament_output_rpg', className='mb-4'),
         dbc.Col([
