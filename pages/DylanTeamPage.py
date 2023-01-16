@@ -136,7 +136,7 @@ def mergeteamdf(data):
 
     team = dff
     op = dff
-    op = op.drop(['SP Won', 'SP Attempts', 'Outcome'], axis=1)
+    op = op.drop(['SP Won', 'SP Attempts', 'Outcome', 'Tournament'], axis=1)
 
     op = op.rename(columns=OpNames)
     op.set_index('TeamT')
@@ -153,8 +153,8 @@ def mergeteamdf(data):
     master = master.drop(['TeamT', 'OpponentO', 'stat_type'], axis=1).set_index('Team')
 
     return master
-def filterteamdf(team, tournament, result, opponent, data):
-    dff = data
+def filterteamdf(team, tournament, result, opponent, df):
+    dff = df
     if tournament != "All":
         dff = dff.drop(dff[dff.Tournament != tournament].index)
     if result != "All":
@@ -267,8 +267,10 @@ def gettables(playerAvg, stat, stat2, teamAvg, team):
 def getchartdfs(dff, team):
     dff = dff[~(dff['Team'] != team) | ~(dff['Team'] != "Top 8 Avg") | ~(dff['Team'] != "All Teams Avg")]
 
-    t_shootp = dff.filter(['Action Shooting %', 'Center Shooting %', 'Extra Shooting %', 'Foul Shooting %', 'Penalty Shooting %'], axis=1)
-    o_shootp = dff.filter(['Op Action Shooting %', 'Op Center Shooting %', 'Op Extra Shooting %', 'Op Foul Shooting %', 'Op Penalty Shooting %'], axis=1)
+    t_shootp = dff.filter(['Action Shooting %', 'Center Shooting %', 'Extra Shooting %',
+                           'PS Shooting %', "CA Shooting %", 'Foul Shooting %'], axis=1)
+    o_shootp = dff.filter(['Op Action Shooting %', 'Op Center Shooting %', 'Op Extra Shooting %',
+                           'Op PS Shooting %', "Op CA Shooting %", 'Op Foul Shooting %'], axis=1)
 
     t_ex = dff.filter(['CP DEX pg', 'FP DEX pg', 'DE DEX pg', 'P EX pg'], axis=1)
     o_ex = dff.filter(['CP EX pg', 'FP EX pg',  'DE EX pg', 'P EX pg'], axis=1)
@@ -276,7 +278,7 @@ def getchartdfs(dff, team):
     avg_ex = avg_ex.iloc[2:]
 
     t_goals = dff.filter(['Action Goals pg', 'Extra Goals pg', 'Center Goals pg', 'CA Goals pg',  'Foul Goals pg', 'PS Goals pg'], axis=1)
-    o_goals = dff.filter(['Action Goals Ag pg', 'Extra Goals Ag pg', 'Center Goals Ag pg', 'CA Goals Ag pg', 'PS Goals Ag pg'], axis=1)
+    o_goals = dff.filter(['Action Goals Ag pg', 'Extra Goals Ag pg', 'Center Goals Ag pg', 'CA Goals Ag pg', 'Foul Goals Ag pg', 'PS Goals Ag pg'], axis=1)
 
     # t_shootp.drop('Team', inplace=True, axis=1)
     # o_shootp.drop('Team', inplace=True, axis=1)
@@ -379,14 +381,14 @@ layout = dbc.Container([
             "Select a Team",
             dcc.Dropdown(
                 id='team_dropdown_tpg',
-                options=[{'label': t, 'value': t} for t in teamlist],
+                options=[],
                 value='USA',
             )], width={'size': 2, 'offset': 2}, id='team_output_tpg', className='mb-4'),
         dbc.Col([
             "Tournament Filter",
             dcc.Dropdown(
                 id='tournament_dropdown_tpg',
-                options=['All', 'OLY2020'],
+                options=[],
                 value='All',
             )], width={'size': 2}, id='tournament_output_tpg', className='mb-4'),
         dbc.Col([
@@ -534,6 +536,7 @@ def update_tables(team, tournament, result, opponent, stat, stat2):
     dash_table.DataTable(id='player-table',
                          columns=[{'id': c, 'name': c} for c in table1.columns.values])  # apply to table
     player_table = table1.to_dict('records')
+
     dash_table.DataTable(id='team-table',
                          columns=[{'id': c, 'name': c} for c in table2.columns.values])  # apply to table
     team_table = table2.to_dict('records')
@@ -608,3 +611,23 @@ def linkdropdowns(result, result_copy, opponent, opponent_copy):
 
     return result_value, result_value, opponent_value, opponent_value
 
+@callback(
+    Output('team_dropdown_tpg', 'options'),
+    Output('tournament_dropdown_tpg', 'options'),
+    Input('team_dropdown_tpg', 'value'),
+    Input('tournament_dropdown_tpg', 'value'))
+def updatedropdowns(team, tournament):
+
+    teamdf = df.filter(['Team', 'Tournament'])
+    teamdf = teamdf.drop(teamdf[teamdf.Team != team].index)
+    tournlis = sorted(teamdf['Tournament'].unique().tolist())
+    tournlis.insert(0, "All")
+
+    tourndf = df.filter(['Team', 'Tournament'])
+    if tournament != 'All':
+        tourndf = tourndf.drop(tourndf[tourndf.Tournament != tournament].index)
+        teamlis = sorted(tourndf['Team'].unique().tolist())
+    else:
+        teamlis = teamlist
+
+    return [{'label': t, 'value': t} for t in teamlis], [{'label': t, 'value': t} for t in tournlis]
