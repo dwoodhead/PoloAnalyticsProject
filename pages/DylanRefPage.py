@@ -19,7 +19,10 @@ reflist = sorted(refs.unique().tolist())
 # Lists
 TOP_8 = ['ITA', 'GRE', 'SRB', 'USA', 'HUN', 'ESP', 'CRO', 'MNE']
 GEN_COLS = ['Goals', 'Total EX', 'TF']
-KNOCK_GAMES = [31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42]
+KNOCK_GAMES = ['OLY2020-31', 'OLY2020-32', 'OLY2020-33', 'OLY2020-34', 'OLY2020-35', 'OLY2020-36',
+               'OLY2020-37', 'OLY2020-38', 'OLY2020-39', 'OLY2020-40', 'OLY2020-41', 'OLY2020-42',
+               'WC2022-41', 'WC2022-42', 'WC2022-43', 'WC2022-44', 'WC2022-45', 'WC2022-46',
+               'WC2022-47', 'WC2022-48', 'WC2022-35', 'WC2022-36', 'WC2022-37', 'WC2022-38']
 
 # Styles
 tableheaderstyle = {'backgroundColor': 'rgb(220, 220, 220)',
@@ -73,7 +76,7 @@ def winlossdf(master):
     return genTable.round(2)
 def refavgdf(master):
     masterAvg = master.groupby('Ref').mean(numeric_only=True).reset_index()
-    masterAvg = masterAvg.drop(['Match Number'], axis=1)
+    # masterAvg = masterAvg.drop(['Match Number'], axis=1)
 
     gamesRef = master.groupby('Ref').count()['Outcome']
     gamesRef = gamesRef / 2
@@ -141,7 +144,7 @@ layout = dbc.Container([
             "Tournament Filter",
             dcc.Dropdown(
                 id='tournament_dropdown_ref',
-                options=['All', 'OLY2020', 'WC2022', 'EURO2022'],
+                options=['All', 'OLY2020', 'WC2022', 'EC2022'],
                 value='All',
             )], width={'size': 2, 'offset': 3}, id='tournament_output_ref', className='mb-4'),
         dbc.Col([
@@ -180,8 +183,8 @@ layout = dbc.Container([
             "Select a Referee",
             dcc.Dropdown(
                 id='ref_dropdown',
-                options=[{'label': r, 'value': r} for r in reflist],
-                value='ALEXANDRESCU',
+                options=[],
+                value='KUN',
             )], width={'size': 2, 'offset': 2}, id='ref_output', className='mb-4'),
         dbc.Col([
             "Game Type Filter",
@@ -249,7 +252,7 @@ def update_table(tournament, opponent, rank):
     Output('exGraph_ref', 'figure'),
     Input('tournament_dropdown_ref', 'value'),
     Input('opponent_dropdown_copy_ref', 'value'),
-    Input('ref_dropdown', 'value'))
+    Input('ref_dropdown', 'value'),)
 def update_charts(tournament, opponent, ref):
     dff = df
 
@@ -271,11 +274,19 @@ def update_charts(tournament, opponent, ref):
 @callback(
     Output('opponent_dropdown_copy_ref', 'options'),
     Output('ref_dropdown', 'value'),
+    Output('ref_dropdown', 'options'),
     Input('ref_dropdown', 'value'),
-    Input('opponent_dropdown_copy_ref', 'value'))
-def updatedropdowns(ref, opponent):
+    Input('opponent_dropdown_copy_ref', 'value'),
+    Input('tournament_dropdown_ref', 'value'))
+def updatedropdowns(ref, opponent, tournament):
     refdff = pd.DataFrame()
-    refdf = df.filter(['Ref', 'Team', 'Match Number'])
+    refdf = df.filter(['Ref', 'Team', 'Match Number', 'Tournament'])
+    if tournament != 'All':
+        refnamedf = refdf.drop(refdf[refdf.Tournament != tournament].index)
+        refnameslist = sorted(refnamedf['Ref'].unique().tolist())
+    else:
+        refnameslist = sorted(refdf['Ref'].unique().tolist())
+    refdf = refdf.drop(['Tournament'], axis=1)
 
     for index, row in refdf.iterrows():
         if ref == row['Ref']:
@@ -294,14 +305,13 @@ def updatedropdowns(ref, opponent):
         retlist.insert(1, "Top 8")
     else:
         if opponent == "Top 8":
-            ref = "ALEXANDRESCU"
+            ref = "KUN"
     if gamecheck is True:
         retlist.insert(1, "Knockout Rounds")
     else:
         if opponent == "Knockout Rounds":
-            ref = "ALEXANDRESCU"
-
+            ref = "KUN"
     if ref == "":
-        ref = "ALEXANDRESCU"
+        ref = "KUN"
 
-    return [{'label': t, 'value': t} for t in retlist], ref
+    return [{'label': t, 'value': t} for t in retlist], ref, refnameslist
