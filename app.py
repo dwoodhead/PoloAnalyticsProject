@@ -9,9 +9,11 @@ server = app.server
 navbar = dbc.NavbarSimple(
     children=[
         dbc.NavItem(dbc.NavLink("Home", href='/')),
+        dbc.NavItem(dbc.NavLink("Player Analysis", href='/dylanplayerpage')),
         dbc.NavItem(dbc.NavLink("Team Analysis", href='/dylanteampage')),
         dbc.NavItem(dbc.NavLink("Ref Analysis", href='/dylanrefpage')),
         dbc.NavItem(dbc.NavLink("Player Rank", href='/dylanrankpage')),
+        dbc.NavItem(dbc.NavLink("Team Rank", href='/dylanteamrankpage')),
         # dbc.DropdownMenu(
         #     children=[
         #         dbc.DropdownMenuItem("More pages", header=True),
@@ -39,4 +41,4 @@ app.layout = dbc.Container(
 )
 
 if __name__ == '__main__':
-    app.run_server(debug=False)
+    app.run_server(debug=True)
