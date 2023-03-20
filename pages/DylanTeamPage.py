@@ -155,8 +155,27 @@ def mergeteamdf(data):
     return master
 def filterteamdf(team, tournament, result, opponent, df):
     dff = df
-    if tournament != "All":
-        dff = dff.drop(dff[dff.Tournament != tournament].index)
+
+    if type(tournament) == list:
+        if len(tournament) == 1:
+            tourn = tournament[0]
+            if tourn != "All":
+                dff = dff.drop(dff[dff.Tournament != tourn].index)
+        else:
+            tournMaster = pd.DataFrame()
+            allCount = 0
+            for i in tournament:
+                if i == "All":
+                    allCount = 1
+                else:
+                    temp = dff.drop(dff[dff.Tournament != i].index)
+                    tournMaster = pd.concat([tournMaster, temp])
+            if allCount == 0:
+                dff = tournMaster
+    else:
+        if tournament != "All":
+            dff = dff.drop(dff[dff.Tournament != tournament].index)
+
     if result != "All":
         if result == 'W':
             dff = dff[~(dff['Outcome'] != 1)]
@@ -171,8 +190,27 @@ def filterteamdf(team, tournament, result, opponent, df):
 def filterplayerdf(team, tournament, result, opponent, df2):
     dff = df2
     dff = dff.drop(dff[dff.Team != team].index)
-    if tournament != "All":
-        dff = dff.drop(dff[dff.Tournament != tournament].index)
+
+    if type(tournament) == list:
+        if len(tournament) == 1:
+            tourn = tournament[0]
+            if tourn != "All":
+                dff = dff.drop(dff[dff.Tournament != tourn].index)
+        else:
+            tournMaster = pd.DataFrame()
+            allCount = 0
+            for i in tournament:
+                if i == "All":
+                    allCount = 1
+                else:
+                    temp = dff.drop(dff[dff.Tournament != i].index)
+                    tournMaster = pd.concat([tournMaster, temp])
+            if allCount == 0:
+                dff = tournMaster
+    else:
+        if tournament != "All":
+            dff = dff.drop(dff[dff.Tournament != tournament].index)
+
     if result != "All":
         if result == 'W':
             dff = dff.drop(dff[dff.Outcome != 1].index)
@@ -390,6 +428,7 @@ layout = dbc.Container([
                 id='tournament_dropdown_tpg',
                 options=[],
                 value='All',
+                multi=True,
             )], width={'size': 2}, id='tournament_output_tpg', className='mb-4'),
         dbc.Col([
             "Result Filter",
@@ -508,6 +547,31 @@ layout = dbc.Container([
 ])
 
 @callback(
+    Output('team_dropdown_tpg', 'options'),
+    Output('tournament_dropdown_tpg', 'options'),
+    Input('team_dropdown_tpg', 'value'),
+    Input('tournament_dropdown_tpg', 'value'))
+def updatedropdowns(team, tournament):
+
+    teamdf = df.filter(['Team', 'Tournament'])
+    teamdf = teamdf.drop(teamdf[teamdf.Team != team].index)
+    tournlis = sorted(teamdf['Tournament'].unique().tolist())
+    tournlis.insert(0, "All")
+
+    tourndf = df.filter(['Team', 'Tournament'])
+
+    if type(tournament) == list:
+        teamlis = teamlist
+    else:
+        if tournament != 'All':
+            tourndf = tourndf.drop(tourndf[tourndf.Tournament != tournament].index)
+            teamlis = sorted(tourndf['Team'].unique().tolist())
+        else:
+            teamlis = teamlist
+
+    return [{'label': t, 'value': t} for t in teamlis], [{'label': t, 'value': t} for t in tournlis]
+
+@callback(
     Output('playerStats_table', 'data'),
     Output('teamStats_table', 'data'),
     Output('opStats_table', 'data'),
@@ -521,6 +585,9 @@ layout = dbc.Container([
 def update_tables(team, tournament, result, opponent, stat, stat2):
     teamstats = teams_master
     playerstats = players_master
+
+    if tournament == "":
+        tournament = "All"
 
     teamstats = filterteamdf(team, tournament, result, opponent, teamstats)
     playerstats = filterplayerdf(team, tournament, result, opponent, playerstats)
@@ -562,6 +629,9 @@ def update_tables(team, tournament, result, opponent, stat, stat2):
     Input('result_dropdown_tpg', 'value'),
     Input('opponent_dropdown_tpg', 'value'))
 def update_charts(team, tournament, result, opponent):
+    if tournament == "":
+        tournament = "All"
+
     teamstats = teams_master
     teamstats = filterteamdf(team, tournament, result, opponent, teamstats)
 
@@ -582,6 +652,9 @@ def update_charts(team, tournament, result, opponent):
     Input('tournament_dropdown_tpg', 'value'),
     Input('result_dropdown_tpg', 'value'))
 def updatedropdowns(team, tournament, result):
+    if tournament == "":
+        tournament = "All"
+
     teamstats = filterteamdf(team, tournament, result, 'All', teams_master)
     oplistdf = teamstats.drop(teamstats[teamstats.Team != team].index)
     oplist = sorted(oplistdf.Opponent.unique().tolist())
@@ -610,24 +683,3 @@ def linkdropdowns(result, result_copy, opponent, opponent_copy):
     opponent_value = opponent if trigger_id == 'opponent_dropdown_tpg' else opponent_copy
 
     return result_value, result_value, opponent_value, opponent_value
-
-@callback(
-    Output('team_dropdown_tpg', 'options'),
-    Output('tournament_dropdown_tpg', 'options'),
-    Input('team_dropdown_tpg', 'value'),
-    Input('tournament_dropdown_tpg', 'value'))
-def updatedropdowns(team, tournament):
-
-    teamdf = df.filter(['Team', 'Tournament'])
-    teamdf = teamdf.drop(teamdf[teamdf.Team != team].index)
-    tournlis = sorted(teamdf['Tournament'].unique().tolist())
-    tournlis.insert(0, "All")
-
-    tourndf = df.filter(['Team', 'Tournament'])
-    if tournament != 'All':
-        tourndf = tourndf.drop(tourndf[tourndf.Tournament != tournament].index)
-        teamlis = sorted(tourndf['Team'].unique().tolist())
-    else:
-        teamlis = teamlist
-
-    return [{'label': t, 'value': t} for t in teamlis], [{'label': t, 'value': t} for t in tournlis]
